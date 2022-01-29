@@ -100,11 +100,12 @@ class RecipeIngredientsScraper(Scraper):
 
     def __init__(self, card_classes={}, recipe_basic_infos=[]):
         urls = list()
-        self.all_ingredients = {}
+        self.all_ingredients = []
         self.recipe_infos = recipe_basic_infos
         for recipe in recipe_basic_infos:
             urls.append(recipe.url)
         super().__init__(card_classes=card_classes, urls=urls)
+        # self.all_ingredients = set(self.all_ingredients)
 
     def scrape_data(self, soups: Tuple):
         for soup, url in soups:
@@ -123,6 +124,7 @@ class RecipeIngredientsScraper(Scraper):
                 # make words lowercase for convenience
                 ingredient_text = [word.lower() for word in ingredient_text]
 
+                self.all_ingredients.extend(ingredient_text)
                 ingredients.append(" ".join(ingredient_text))
             recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[0]
             recipe_basic_data.ingredients.extend(ingredients)
