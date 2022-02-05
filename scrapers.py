@@ -7,10 +7,11 @@ from abc import ABC, abstractmethod
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords
 from collections import namedtuple
+from utils import measurement_units
 
 # a neat little trick - make ingredients an empty list initially and then append to that in the
 # next scraper - you can do that!
-ScrapedRecipeInfo = namedtuple('ScrapedRecipeInfo', 'name url image_url ingredients')
+ScrapedRecipeInfo = namedtuple("ScrapedRecipeInfo", "name url image_url ingredients")
 
 
 class Scraper(ABC):
@@ -56,20 +57,50 @@ class BasicRecipeInfoScraper(Scraper):
     It's a child class that inherits from Scraper abc.
     """
 
-    def __init__(self, card_classes={}, urls=[]):
+    def __init__(
+        self,
+        card_classes={},
+        meal_type="",
+        url_base="",
+        url_appendix={},
+        limit=1,
+    ):
+        urls = self.prepare_urls(url_base, url_appendix, meal_type, limit)
+        self.url_base = url_base
         super().__init__(card_classes=card_classes, urls=urls)
+
+    def prepare_urls(self, base, appendix, meal_type, limit):
+        urls = []
+        for i in range(1, limit):
+            urls.append(base + appendix[meal_type] + f"?page={i}")
+        return urls
 
     def scrape_data(self, soups: Tuple):
         for soup, url in soups:
-            tag, class_name = self.card_classes["base"]
-            nested_tags_list = soup.find_all(tag, class_=class_name)[0::2]
-            for tag in nested_tags_list:
-                self.scraped_data.append(ScrapedRecipeInfo(
-                    tag.div.img["alt"],  # name
-                    tag["href"],  # url
-                    tag.div.img["src"],  # image_url
-                    []  # ingredients
-                ))
+            if url[-1] == "1":
+                tag, class_name = self.card_classes["base"][0]
+                nested_tags_list = soup.find_all(tag, class_=class_name)[0::2]
+                for tag in nested_tags_list:
+                    self.scraped_data.append(
+                        ScrapedRecipeInfo(
+                            tag.div.img["alt"],  # name
+                            tag["href"],  # url
+                            tag.div.img["src"],  # image_url
+                            [],  # ingredients
+                        )
+                    )
+            else:
+                tag, class_name = self.card_classes["base"][1]
+                nested_tags_list = soup.find_all(tag, class_=class_name)
+                for tag in nested_tags_list:
+                    self.scraped_data.append(
+                        ScrapedRecipeInfo(
+                            tag.a["title"],  # name
+                            self.url_base + tag.a["href"],  # url
+                            tag.a.div["data-src"],  # image_url
+                            [],  # ingredients
+                        )
+                    )
 
 
 class RecipeIngredientsScraper(Scraper):
@@ -80,26 +111,18 @@ class RecipeIngredientsScraper(Scraper):
     It's a child class that inherits from Scraper abc.
     """
 
-    measurement_units = ['teaspoon', 't', 'tsp.', 'tablespoon', 'T', 'tbl.', 'tb', 'tbsp.', 'fluid ounce', 'fl oz',
-                         'gill', 'cup',
-                         'c', 'cups', 'pint', 'p', 'pt', 'fl pt', 'quart', 'q', 'qt', 'fl qt', 'gallon', 'g', 'gal',
-                         'ml', 'milliliter',
-                         'millilitre', 'cc', 'mL', 'l', 'liter', 'litre', 'L', 'dl', 'deciliter', 'decilitre', 'dL',
-                         'bulb', 'level',
-                         'heaped', 'rounded', 'whole', 'pinch', 'medium', 'slice', 'pound', 'lb', '#', 'ounce', 'oz',
-                         'mg',
-                         'milligram', 'milligramme', 'g', 'gram', 'gramme', 'kg', 'kilogram', 'kilogramme', 'x', 'of',
-                         'mm',
-                         'millimetre', 'millimeter', 'cm', 'centimeter', 'centimetre', 'm', 'meter', 'metre', 'inch',
-                         'in', 'milli',
-                         'centi', 'deci', 'hecto', 'kilo']
-
-    stop_words = set(stopwords.words('english'))
+    stop_words = set(stopwords.words("english"))
 
     Lemmatizer = WordNetLemmatizer()
 
-    def __init__(self, card_classes={}, recipe_basic_infos=[]):
+    def __init__(
+        self,
+        card_classes={},
+        recipe_basic_infos=[],
+        meas_units=measurement_units,
+    ):
         urls = list()
+        self.measurement_units = meas_units
         self.all_ingredients = []
         self.recipe_infos = recipe_basic_infos
         for recipe in recipe_basic_infos:
@@ -112,20 +135,33 @@ class RecipeIngredientsScraper(Scraper):
             ingredients = []
             tag, class_name = self.card_classes["base"]
             for ingredient_tag in soup.find_all(tag, class_=class_name):
-                ingredient_text = re.sub('[,]', '', ingredient_tag.text).split(' ')
+                ingredient_text = re.sub("[,]", "", ingredient_tag.text).split(" ")
 
                 ingredient_text = [word for word in ingredient_text if word.isalpha()]
                 # lemmatize words to deal with plural situation
-                ingredient_text = [self.Lemmatizer.lemmatize(word) for word in ingredient_text]
+                ingredient_text = [
+                    self.Lemmatizer.lemmatize(word) for word in ingredient_text
+                ]
                 # remove measurement units
-                ingredient_text = [word for word in ingredient_text if word not in self.measurement_units]
+                ingredient_text = [
+                    word
+                    for word in ingredient_text
+                    if word not in self.measurement_units
+                ]
                 # remove stop words (a, an, etc.)
-                ingredient_text = [word for word in ingredient_text if word not in self.stop_words]
+                ingredient_text = [
+                    word for word in ingredient_text if word not in self.stop_words
+                ]
                 # make words lowercase for convenience
                 ingredient_text = [word.lower() for word in ingredient_text]
 
                 self.all_ingredients.extend(ingredient_text)
                 ingredients.append(" ".join(ingredient_text))
-            recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[0]
+            recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[
+                0
+            ]
             recipe_basic_data.ingredients.extend(ingredients)
-            self.recipe_infos = [recipe_basic_data if recipe_basic_data.name == x.name else x for x in self.recipe_infos]
+            self.recipe_infos = [
+                recipe_basic_data if recipe_basic_data.name == x.name else x
+                for x in self.recipe_infos
+            ]
