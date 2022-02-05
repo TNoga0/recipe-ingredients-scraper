@@ -1,12 +1,14 @@
-from typing import Tuple
 import asyncio
 import re
+from abc import ABC, abstractmethod
+from collections import namedtuple
+from typing import Tuple
+
 import aiohttp
 from bs4 import BeautifulSoup
-from abc import ABC, abstractmethod
-from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords
-from collections import namedtuple
+from nltk.stem.wordnet import WordNetLemmatizer
+
 from utils import measurement_units
 
 # a neat little trick - make ingredients an empty list initially and then append to that in the

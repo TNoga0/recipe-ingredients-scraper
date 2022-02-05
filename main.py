@@ -1,11 +1,8 @@
-from scrapers import *
-from config import (
-    url_base,
-    card_classes_basic_info,
-    url_appendix,
-    card_classes_recipe_ingredients,
-)
 import nltk
+
+from config import (card_classes_basic_info, card_classes_recipe_ingredients,
+                    url_appendix, url_base)
+from scrapers import *
 
 scrp = BasicRecipeInfoScraper(
     card_classes=card_classes_basic_info,
