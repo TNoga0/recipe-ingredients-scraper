@@ -2,7 +2,7 @@ import asyncio
 import re
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import Tuple
+from typing import Tuple, Dict, List, Union
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -23,24 +23,32 @@ class Scraper(ABC):
     and main() implementation.
     """
 
-    def __init__(self, card_classes={}, urls=[]):
+    def __init__(self, card_classes: Dict[str, Tuple] = {}, urls: List = []) -> None:
         self.card_classes = card_classes
         self.urls = urls
         self.scraped_data = []
         asyncio.run(self.main())
 
     @staticmethod
-    async def get_scraped_page(session, url):
+    async def get_scraped_page(session: aiohttp.ClientSession, url: str) -> Tuple:
+        """
+        Awaits an url response, then creates BeautifulSoup object and encodes html to lxml.
+        Returns a tuple of BeautifulSoup and url (url needed for proper ingredient adding,
+        as the recipe data is a namedtuple)
+        """
         async with session.get(url) as response:
             html = await response.text()
             soup = BeautifulSoup(html, "lxml")
         return soup, url
 
     @abstractmethod
-    def scrape_data(self, soups: Tuple):
+    def scrape_data(self, soups: Tuple) -> None:
         pass
 
-    async def main(self):
+    async def main(self) -> None:
+        """
+        Main method for data scraping. Asynchronously gathers scraping tasks and executes them
+        """
         tasks = []
         async with aiohttp.ClientSession() as session:
             for url in self.urls:
@@ -61,23 +69,34 @@ class BasicRecipeInfoScraper(Scraper):
 
     def __init__(
         self,
-        card_classes={},
-        meal_type="",
-        url_base="",
-        url_appendix={},
-        limit=1,
-    ):
+        card_classes: Dict[str, Tuple[str]] = {},
+        meal_type: str = "",
+        url_base: str = "",
+        url_appendix: Dict[str, str] = {},
+        limit: int = 1,
+    ) -> None:
         urls = self.prepare_urls(url_base, url_appendix, meal_type, limit)
         self.url_base = url_base
         super().__init__(card_classes=card_classes, urls=urls)
 
-    def prepare_urls(self, base, appendix, meal_type, limit):
+    def prepare_urls(self, base: str, appendix: Dict[str, str], meal_type: str, limit: int) -> List[str]:
+        """
+        Prepares urls for recipe data scraping, basically adds string parts.
+        """
         urls = []
         for i in range(1, limit):
             urls.append(base + appendix[meal_type] + f"?page={i}")
         return urls
 
-    def scrape_data(self, soups: Tuple):
+    def scrape_data(self, soups: Tuple) -> None:
+        """
+        This one is a bit hacky/tricky. The first page of recipes is different than others. Clicking
+        'load more' theoretically has the url of page 2, but navigating directly to that page
+        displays something entirely different. HTML tags are different, so there's need to make a big
+        'if' statement.
+        The recipe infos are stored in namedtuples and the ingredients are initially an empty list.
+        This allows to modify these objects in another scraper (the ingredient one).
+        """
         for soup, url in soups:
             if url[-1] == "1":
                 tag, class_name = self.card_classes["base"][0]
@@ -119,10 +138,10 @@ class RecipeIngredientsScraper(Scraper):
 
     def __init__(
         self,
-        card_classes={},
-        recipe_basic_infos=[],
-        meas_units=measurement_units,
-    ):
+        card_classes: Dict[str, Tuple] = {},
+        recipe_basic_infos: List[namedtuple] = [],
+        meas_units: List[str] = measurement_units,
+    ) -> None:
         urls = list()
         self.measurement_units = meas_units
         self.all_ingredients = []
@@ -132,7 +151,11 @@ class RecipeIngredientsScraper(Scraper):
         super().__init__(card_classes=card_classes, urls=urls)
         # self.all_ingredients = set(self.all_ingredients)
 
-    def scrape_data(self, soups: Tuple):
+    def scrape_data(self, soups: Tuple) -> None:
+        """
+        Gathers ingredient data by scraping and then removes unnecessary rubbish data.
+        Finally, modifies the namedtuples containing recipe data and inserts them back into the list.
+        """
         for soup, url in soups:
             ingredients = []
             tag, class_name = self.card_classes["base"]
@@ -159,9 +182,7 @@ class RecipeIngredientsScraper(Scraper):
 
                 self.all_ingredients.extend(ingredient_text)
                 ingredients.append(" ".join(ingredient_text))
-            recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[
-                0
-            ]
+            recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[0]
             recipe_basic_data.ingredients.extend(ingredients)
             self.recipe_infos = [
                 recipe_basic_data if recipe_basic_data.name == x.name else x

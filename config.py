@@ -13,10 +13,6 @@ card_classes_basic_info = {
             "tout__imageContainer"
         )
     ),
-    "image": (
-        "div",
-        "component lazy-image lazy-image-udf aspect_1x1 align-default rendered image-loaded"
-    ),
 }
 
 card_classes_recipe_ingredients = {"base": ("span", "ingredients-item-name")}
