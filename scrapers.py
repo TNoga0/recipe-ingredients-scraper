@@ -2,7 +2,7 @@ import asyncio
 import re
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import Tuple, Dict, List, Union
+from typing import Tuple, Dict, List
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -50,7 +50,8 @@ class Scraper(ABC):
         Main method for data scraping. Asynchronously gathers scraping tasks and executes them
         """
         tasks = []
-        async with aiohttp.ClientSession() as session:
+        connector = aiohttp.TCPConnector(limit=50)
+        async with aiohttp.ClientSession(connector=connector) as session:
             for url in self.urls:
                 tasks.append(self.get_scraped_page(session, url))
             soups_and_urls = await asyncio.gather(*tasks)
@@ -182,9 +183,12 @@ class RecipeIngredientsScraper(Scraper):
 
                 self.all_ingredients.extend(ingredient_text)
                 ingredients.append(" ".join(ingredient_text))
-            recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[0]
-            recipe_basic_data.ingredients.extend(ingredients)
-            self.recipe_infos = [
-                recipe_basic_data if recipe_basic_data.name == x.name else x
-                for x in self.recipe_infos
-            ]
+            try:
+                recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[0]
+                recipe_basic_data.ingredients.extend(ingredients)
+                self.recipe_infos = [
+                    recipe_basic_data if recipe_basic_data.name == x.name else x
+                    for x in self.recipe_infos
+                ]
+            except IndexError:
+                print(url)
