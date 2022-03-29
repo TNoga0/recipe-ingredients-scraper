@@ -9,12 +9,11 @@ from bs4 import BeautifulSoup
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 
-from utils import measurement_units
+from utils import measurement_units, unnecessary_vocab
 
 # a neat little trick - make ingredients an empty list initially and then append to that in the
 # next scraper - you can do that!
 ScrapedRecipeInfo = namedtuple("ScrapedRecipeInfo", "name url image_url ingredients")
-
 
 class Scraper(ABC):
     """
@@ -50,8 +49,8 @@ class Scraper(ABC):
         Main method for data scraping. Asynchronously gathers scraping tasks and executes them
         """
         tasks = []
-        connector = aiohttp.TCPConnector(limit=50)
-        async with aiohttp.ClientSession(connector=connector) as session:
+        connector = aiohttp.TCPConnector(force_close=True, limit=25)
+        async with aiohttp.ClientSession(connector=connector, trust_env=True) as session:
             for url in self.urls:
                 tasks.append(self.get_scraped_page(session, url))
             soups_and_urls = await asyncio.gather(*tasks)
@@ -74,18 +73,19 @@ class BasicRecipeInfoScraper(Scraper):
         meal_type: str = "",
         url_base: str = "",
         url_appendix: Dict[str, str] = {},
-        limit: int = 1,
+        limit_start: int = 1,
+        limit_end: int = 2,
     ) -> None:
-        urls = self.prepare_urls(url_base, url_appendix, meal_type, limit)
+        urls = self.prepare_urls(url_base, url_appendix, meal_type, limit_start, limit_end)
         self.url_base = url_base
         super().__init__(card_classes=card_classes, urls=urls)
 
-    def prepare_urls(self, base: str, appendix: Dict[str, str], meal_type: str, limit: int) -> List[str]:
+    def prepare_urls(self, base: str, appendix: Dict[str, str], meal_type: str, limit_start: int, limit_end: int) -> List[str]:
         """
         Prepares urls for recipe data scraping, basically adds string parts.
         """
         urls = []
-        for i in range(1, limit):
+        for i in range(limit_start, limit_end):
             urls.append(base + appendix[meal_type] + f"?page={i}")
         return urls
 
@@ -103,9 +103,13 @@ class BasicRecipeInfoScraper(Scraper):
                 tag, class_name = self.card_classes["base"][0]
                 nested_tags_list = soup.find_all(tag, class_=class_name)[0::2]
                 for tag in nested_tags_list:
+                    # skip the broken scrapes (e.g. some tags that produce faulty results)
+                    #TODO work on that
+                    if not (tag["href"] or tag["href"][0] == "/") and "/recipe/" in tag["href"]:
+                        continue
                     self.scraped_data.append(
                         ScrapedRecipeInfo(
-                            tag.div.img["alt"],  # name
+                            tag["title"],  # name
                             tag["href"],  # url
                             tag.div.img["src"],  # image_url
                             [],  # ingredients
@@ -158,7 +162,7 @@ class RecipeIngredientsScraper(Scraper):
         Finally, modifies the namedtuples containing recipe data and inserts them back into the list.
         """
         for soup, url in soups:
-            ingredients = []
+            ingredients = set()
             tag, class_name = self.card_classes["base"]
             for ingredient_tag in soup.find_all(tag, class_=class_name):
                 ingredient_text = re.sub("[,]", "", ingredient_tag.text).split(" ")
@@ -178,11 +182,16 @@ class RecipeIngredientsScraper(Scraper):
                 ingredient_text = [
                     word for word in ingredient_text if word not in self.stop_words
                 ]
+                # remove junk words (commonly used items etc.)
+                ingredient_text = [
+                    word for word in ingredient_text if word not in unnecessary_vocab
+                ]
                 # make words lowercase for convenience
                 ingredient_text = [word.lower() for word in ingredient_text]
 
-                self.all_ingredients.extend(ingredient_text)
-                ingredients.append(" ".join(ingredient_text))
+                if len(ingredient_text) != 0:
+                    self.all_ingredients.extend(ingredient_text)
+                    ingredients.add(" ".join(ingredient_text))
             try:
                 recipe_basic_data = list(filter(lambda x: x.url == url, self.recipe_infos))[0]
                 recipe_basic_data.ingredients.extend(ingredients)
