@@ -1,0 +1,180 @@
+/usr/bin/python3.8 /home/noga/web/recipe-ingredients-scraper/main.py
+https://www.allrecipes.com/recipe/8149/flourless-chocolate-cake-i/
+breakfast
+##############
+salt, 178
+egg, 174
+sugar, 156
+butter, 133
+ground, 121
+white, 120
+milk, 120
+flour, 114
+chopped, 94
+pepper, 91
+baking, 83
+powder, 78
+cheese, 76
+taste, 73
+vanilla, 62
+shredded, 58
+extract, 57
+cinnamon, 55
+oil, 55
+melted, 52
+onion, 48
+water, 46
+brown, 45
+black, 43
+package, 39
+fresh, 38
+large, 36
+beaten, 36
+vegetable, 35
+cream, 34
+bread, 33
+cheddar, 30
+soda, 29
+sliced, 29
+bacon, 25
+cut, 25
+frozen, 22
+needed, 22
+peeled, 21
+garlic, 21
+##############
+{'powder', 'cheese', 'butter', 'taste', 'pepper', 'cut', 'water', 'vegetable', 'milk', 'baking', 'ground', 'cinnamon', 'sliced', 'black', 'vanilla', 'shredded', 'frozen', 'onion', 'cream', 'flour', 'oil', 'sugar', 'beaten', 'egg', 'fresh', 'melted', 'brown', 'soda', 'extract', 'peeled', 'white', 'bacon', 'large', 'package', 'chopped', 'bread', 'garlic', 'needed', 'salt', 'cheddar'}
+dessert
+##############
+sugar, 266
+white, 172
+butter, 164
+vanilla, 149
+extract, 142
+egg, 126
+flour, 106
+salt, 100
+milk, 90
+package, 83
+baking, 78
+cream, 76
+ground, 71
+softened, 63
+powder, 62
+chocolate, 53
+brown, 50
+cinnamon, 50
+soda, 43
+chopped, 41
+water, 40
+cheese, 34
+melted, 31
+mix, 31
+lemon, 30
+cocoa, 29
+chip, 28
+juice, 27
+large, 26
+heavy, 26
+oil, 25
+sliced, 24
+unsweetened, 24
+packed, 23
+semisweet, 23
+frozen, 23
+peanut, 18
+vegetable, 18
+cake, 18
+walnut, 17
+##############
+{'powder', 'cheese', 'butter', 'heavy', 'taste', 'pepper', 'cut', 'water', 'vegetable', 'milk', 'baking', 'unsweetened', 'ground', 'cinnamon', 'sliced', 'black', 'vanilla', 'shredded', 'frozen', 'onion', 'cream', 'flour', 'cake', 'chip', 'oil', 'sugar', 'beaten', 'egg', 'fresh', 'melted', 'brown', 'peanut', 'packed', 'semisweet', 'soda', 'extract', 'peeled', 'white', 'bacon', 'walnut', 'large', 'cocoa', 'package', 'lemon', 'mix', 'chocolate', 'chopped', 'bread', 'garlic', 'needed', 'salt', 'juice', 'cheddar', 'softened'}
+main_course
+##############
+pepper, 222
+ground, 191
+salt, 173
+chopped, 149
+taste, 136
+onion, 133
+black, 125
+cheese, 115
+oil, 112
+garlic, 112
+chicken, 96
+sauce, 92
+fresh, 80
+dried, 79
+sliced, 76
+minced, 73
+beef, 72
+butter, 71
+olive, 71
+egg, 67
+water, 60
+powder, 59
+clove, 55
+flour, 53
+package, 49
+cut, 49
+shredded, 48
+white, 47
+cream, 46
+boneless, 45
+green, 44
+parsley, 44
+grated, 44
+divided, 43
+breast, 41
+diced, 40
+vegetable, 40
+bread, 39
+skinless, 39
+mushroom, 38
+##############
+{'powder', 'cheese', 'butter', 'heavy', 'taste', 'pepper', 'cut', 'water', 'sauce', 'beef', 'vegetable', 'parsley', 'milk', 'baking', 'unsweetened', 'ground', 'cinnamon', 'sliced', 'olive', 'mushroom', 'black', 'vanilla', 'shredded', 'frozen', 'onion', 'cream', 'boneless', 'flour', 'cake', 'chip', 'oil', 'dried', 'sugar', 'beaten', 'egg', 'fresh', 'melted', 'brown', 'peanut', 'packed', 'semisweet', 'chicken', 'clove', 'soda', 'extract', 'peeled', 'white', 'bacon', 'walnut', 'skinless', 'minced', 'diced', 'grated', 'large', 'cocoa', 'breast', 'package', 'lemon', 'mix', 'chocolate', 'chopped', 'bread', 'garlic', 'divided', 'green', 'needed', 'salt', 'juice', 'cheddar', 'softened'}
+healthy
+##############
+chopped, 210
+pepper, 185
+salt, 119
+ground, 118
+garlic, 105
+onion, 104
+black, 99
+taste, 98
+oil, 92
+dried, 87
+fresh, 80
+minced, 65
+olive, 64
+clove, 63
+water, 57
+chicken, 57
+tomato, 57
+powder, 53
+bean, 50
+sliced, 49
+peeled, 48
+cut, 48
+diced, 46
+sauce, 46
+green, 44
+sugar, 43
+red, 42
+white, 41
+juice, 36
+lemon, 35
+drained, 34
+bell, 32
+vegetable, 30
+piece, 29
+celery, 29
+leaf, 28
+large, 28
+breast, 27
+package, 26
+potato, 26
+##############
+{'beef', 'heavy', 'pepper', 'vegetable', 'milk', 'black', 'shredded', 'onion', 'red', 'flour', 'chip', 'oil', 'semisweet', 'extract', 'skinless', 'large', 'potato', 'chopped', 'bread', 'cheddar', 'butter', 'water', 'baking', 'sliced', 'vanilla', 'cake', 'sugar', 'drained', 'fresh', 'chicken', 'soda', 'bacon', 'minced', 'grated', 'breast', 'piece', 'package', 'lemon', 'mix', 'bean', 'divided', 'needed', 'taste', 'cut', 'sauce', 'parsley', 'ground', 'cinnamon', 'mushroom', 'frozen', 'celery', 'bell', 'beaten', 'packed', 'walnut', 'cocoa', 'melted', 'brown', 'softened', 'powder', 'cheese', 'unsweetened', 'olive', 'leaf', 'cream', 'boneless', 'dried', 'egg', 'peanut', 'clove', 'peeled', 'white', 'diced', 'chocolate', 'garlic', 'green', 'tomato', 'salt', 'juice'}
+
+Process finished with exit code 0
