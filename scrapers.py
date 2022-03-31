@@ -172,6 +172,8 @@ class RecipeIngredientsScraper(Scraper):
                 ingredient_text = [
                     self.Lemmatizer.lemmatize(word) for word in ingredient_text
                 ]
+                # make words lowercase for convenience
+                ingredient_text = [word.lower() for word in ingredient_text]
                 # remove measurement units
                 ingredient_text = [
                     word
@@ -186,9 +188,7 @@ class RecipeIngredientsScraper(Scraper):
                 ingredient_text = [
                     word for word in ingredient_text if word not in unnecessary_vocab
                 ]
-                # make words lowercase for convenience
-                ingredient_text = [word.lower() for word in ingredient_text]
-
+                ingredient_text = list(set(ingredient_text))
                 if len(ingredient_text) != 0:
                     self.all_ingredients.extend(ingredient_text)
                     ingredients.add(" ".join(ingredient_text))
